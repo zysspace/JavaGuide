@@ -255,7 +255,7 @@ HashMap只提供了put用于添加元素，putVal方法只是给put方法调用�
 ![put方法](https://user-gold-cdn.xitu.io/2018/9/2/16598bf758c747e6?w=999&h=679&f=png&s=54486)
 
 ①.判断键值对数组table[i]是否为空或为null，否则执行resize()进行扩容；<br/>
-②.根据键值key计算hash值得到插入的数组索引i，如果table[i]==null，直接新建节点添加，转向⑥，如果table[i]不为空，转向③； <br/>
+②.根据键值key计算hash值得到插入的数组索引i，如果table[i]==null，直接新建节点添加，转向⑥，如果table[i]不为空，<br/>转向③； <br/>
 ③.判断table[i]的首个元素是否和key一样，如果相同直接覆盖value，否则转向④，这里的相同指的是hashCode以及equals； <br/>
 ④.判断table[i] 是否为treeNode，即table[i] 是否是红黑树，如果是红黑树，则直接在树中插入键值对，否则转向⑤； <br/>
 ⑤.遍历table[i]，判断链表长度是否大于8，大于8的话把链表转换为红黑树，在红黑树中执行插入操作，否则进行链表的插入操作；遍历过程中若发现key已经存在直接覆盖value即可； <br/>
@@ -399,6 +399,20 @@ final Node<K,V> getNode(int hash, Object key) {
     return null;
 }
 ```
+get值方法的过程是: <br/>
+1、指定key 通过hash函数得到key的hash值 
+int hash=key.hashCode();
+
+2、调用内部方法 getNode()，得到桶号(一般都为hash值对桶数求模) 
+int index =hash%Entry[].length;
+
+3、比较桶的内部元素是否与key相等，若都不相等，则没有找到。相等，则取出相等记录的value。
+
+4、如果得到 key 所在的桶的头结点恰好是红黑树节点，就调用红黑树节点的 getTreeNode() 方法，否则就遍历链表节点。getTreeNode 方法使通过调用树形节点的 find()方法进行查找。由于之前添加时已经保证这个树是有序的，因此查找时基本就是折半查找，效率很高。
+
+5、如果对比节点的哈希值和要查找的哈希值相等，就会判断 key 是否相等，相等就直接返回；不相等就从子树中递归查找。
+
+HashMap中直接地址用hash函数生成；解决冲突，用比较函数解决。如果每个桶内部只有一个元素，那么查找的时候只有一次比较。当许多桶内没有值时，许多查询就会更快了(指查不到的时候)
 ### resize方法
 进行扩容，会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的。在编写程序中，要尽量避免resize。
 ```java
